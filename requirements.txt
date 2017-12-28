@@ -1,0 +1,4 @@
+aioodbc
+aiotg
+aiohttp
+lxml
