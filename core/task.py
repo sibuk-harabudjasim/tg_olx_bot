@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 
-from core.signal import yield_data
+from core.signal import yield_data, start_task, stop_task
 
 loop = asyncio.get_event_loop()
 
@@ -54,11 +54,12 @@ class TaskPool(object):
         self.signal = yield_data
 
     def init(self):
-        # subscribe to signals
-        pass
+        start_task.add_observer('task_pool', self.add_task_observer)
+        stop_task.add_observer('task_pool', self.delete_task_observer)
 
-    def load_tasks(self, tasks_info):
-        pass
+    def load_tasks(self):
+        print('LOADING TASKS')
+        # TODO: load tasks from DB
 
     def register_default_task(self, cls):
         self.default_task = cls
@@ -77,6 +78,14 @@ class TaskPool(object):
         task.yield_func = self.signal
         self.tasks.append(task)
         task.start(immediate)
+
+    def delete_task_observer(self, task_id):
+        print("DELETING TASK")
+        # TODO: remove task from schedule
+
+    def add_task_observer(self, tg_id, task):
+        print('ADDING TASK')
+        # TODO: add task
 
 
 pool = TaskPool()

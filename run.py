@@ -10,6 +10,7 @@ if __name__ == '__main__':
     pbot.init()
     taskpool.init()
     taskpool.register_default_task(GumtreeTask)
+    taskpool.load_tasks()
     pbot.run()
 
 __author__ = 'manitou'

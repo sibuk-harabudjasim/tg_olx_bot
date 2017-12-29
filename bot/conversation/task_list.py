@@ -2,6 +2,7 @@
 from bot.conversation.constants import Buttons, Constants
 from bot.conversation.error import error_message
 from bot.userstor import with_user_data, callback_with_user_data
+from core.signal import stop_task, start_task
 from utils.db import Tasks
 from utils.markups import make_inline_keyboard
 
@@ -59,7 +60,7 @@ async def task_delete(chat, cq, match, user_data):
         # TODO: process exception
         pass
     del user_data['tasks'][task_name]
-    # TODO: send signal
+    stop_task.emit(task.id)
     restore_inline = make_inline_keyboard(1, (Buttons.TASK_RESTORE, Constants.TASK_RESTORE_TMPL.format(task.id)), to_json=False)
     return await chat.edit_text(chat.message['message_id'], 'Yep, it`s deleted now. But you can restore it if you want. Or just use keyboard below.', markup=restore_inline)
 
@@ -67,13 +68,15 @@ async def task_delete(chat, cq, match, user_data):
 @callback_with_user_data
 async def task_restore(chat, cq, match, user_data):
     await cq.answer()
-    task_id = match.group(1)
+    task_id = int(match.group(1))
     try:
         await Tasks.update_task(task_id, state=1)
     except Exception as e:
         # TODO: process exception
         pass
     user_data['tasks'] = await Tasks.get_user_tasks(user_data['id'])
+    task = [t for t in user_data['tasks'].values() if t.id == task_id][0]
+    start_task.emit(user_data['tg_id'], task)
     return await chat.edit_text(chat.message['message_id'], 'Done, let`s go to the keyboard below.')
 
 

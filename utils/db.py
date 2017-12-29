@@ -6,7 +6,7 @@ import aioodbc
 from core.config import config
 
 user_task_nt = namedtuple('user_task', 'id name state args')
-active_task_nt = namedtuple('active_task', 'id name username tg_id args')
+active_task_nt = namedtuple('active_task', 'id name tg_id args')
 
 
 class Users(object):
@@ -19,7 +19,7 @@ class Users(object):
         if not res:
             return
         user = {'id': res[0], 'name': res[1], 'tg_id': res[2]}
-        tasks = await Tasks.get_user_tasks(user['id'], only_active=False)
+        tasks = await Tasks.get_user_tasks(user['id'])
         user['tasks'] = tasks
         return user
 
@@ -52,12 +52,12 @@ class Tasks(object):
     @staticmethod
     async def get_active_tasks():
         cur = await db.cursor()
-        await cur.execute("SELECT t.name, u.name, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id WHERE state = 1")
+        await cur.execute("SELECT t.name, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id WHERE state = 1")
         res = await cur.fetchall()
         await cur.close()
         tasks = []
         for item in res:
-            task = active_task_nt(*item[:3], json.loads(item[3]))
+            task = active_task_nt(*item[:2], json.loads(item[2]))
             tasks.append(task)
         return tasks
 

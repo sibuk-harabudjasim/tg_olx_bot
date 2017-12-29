@@ -3,6 +3,7 @@ import re
 
 from bot.conversation.constants import States, mainmenu
 from bot.userstor import with_user_data
+from core.signal import start_task
 from utils.db import Tasks
 from utils.markups import parse_list
 from utils.validation import validate_url, validate_blacklist, validate_whitelist, validate_name
@@ -24,7 +25,7 @@ def process_url(chat, message, user_data):
 
 
 def process_blacklist(chat, message, user_data):
-    if re.findall(r"it's okay", message['text']):
+    if re.findall(r"it['`]?s okay", message['text']):
         return goto_whitelist('Okay, it`s your choice.', chat, user_data)
     words = parse_list(message['text'])
     user_data['new_watch']['blacklist'] = words
@@ -41,7 +42,7 @@ def goto_whitelist(prepend_message, chat, user_data):
 
 
 def process_whitelist(chat, message, user_data):
-    if re.findall(r"it's okay", message['text']):
+    if re.findall(r"it['`]?s okay", message['text'], re.I):
         return goto_name('Okay, it`s your choice.', chat, user_data)
     words = parse_list(message['text'])
     user_data['new_watch']['whitelist'] = words
@@ -71,6 +72,7 @@ async def process_name(chat, message, user_data):
         pass
     del user_data['new_watch']
     del user_data['state']
+    start_task.emit(user_data['tg_id'], task)
     user_data['tasks'][task.name] = task
     return chat.send_text(name_text + 'We`re done. Your task is set up. Soon you`ll start receiving results. If you want to do something else - just take bottom menu.', markup=mainmenu)
 
