@@ -10,9 +10,9 @@ from utils.validation import validate_url, validate_blacklist, validate_whitelis
 
 
 @with_user_data
-def add_watch(chat, *args, user_data):
+def add_task(chat, *args, user_data):
     user_data['new_watch'] = {}
-    user_data['state'] = States.ADD_WATCH_URL
+    user_data['state'] = States.ADD_TASK_URL
     print('USER_DATA', user_data)
     return chat.send_text('Great! I will need URL, and two lists of words: whitelist and blacklist.\nLet`s start with URL, type it right now!')
 
@@ -20,7 +20,7 @@ def add_watch(chat, *args, user_data):
 def process_url(chat, message, user_data):
     url = validate_url(message['text'])
     user_data['new_watch']['url'] = url
-    user_data['state'] = States.ADD_WATCH_BLACKLIST
+    user_data['state'] = States.ADD_TASK_BLACKLIST
     return chat.send_text('Accepted! Now write down words you DON`T want to see in advert. Comma separated, like:\nboring, stupid, broken\nYou can even write part of words or couples, but don`t forget about commas!')
 
 
@@ -37,7 +37,7 @@ def process_blacklist(chat, message, user_data):
 
 def goto_whitelist(prepend_message, chat, user_data):
     msg = 'Now write down words you WANT to see in advert. Comma separated, like:\nsuper, amazing, best\nYou can even write part of words or couples, but don`t forget about commas!'
-    user_data['state'] = States.ADD_WATCH_WHITELIST
+    user_data['state'] = States.ADD_TASK_WHITELIST
     return chat.send_text(prepend_message + ' ' + msg)
 
 
@@ -54,7 +54,7 @@ def process_whitelist(chat, message, user_data):
 
 def goto_name(prepend_message, chat, user_data):
     msg = 'Last step to our success: name your subscription, so you can find and edit it later, any word you want.'
-    user_data['state'] = States.ADD_WATCH_NAME
+    user_data['state'] = States.ADD_TASK_NAME
     return chat.send_text(prepend_message + ' ' + msg)
 
 

@@ -40,7 +40,6 @@ class UserStorage(object):
         return user
 
 
-
 userstorage = UserStorage()
 
 

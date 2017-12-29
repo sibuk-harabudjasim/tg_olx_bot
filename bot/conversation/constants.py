@@ -9,10 +9,10 @@ class Buttons(object):
 
 
 class States(object):
-    ADD_WATCH_URL = 'url_add'
-    ADD_WATCH_BLACKLIST = 'blacklist_add'
-    ADD_WATCH_WHITELIST = 'whitelist_add'
-    ADD_WATCH_NAME = 'name_add'
+    ADD_TASK_URL = 'url_add'
+    ADD_TASK_BLACKLIST = 'blacklist_add'
+    ADD_TASK_WHITELIST = 'whitelist_add'
+    ADD_TASK_NAME = 'name_add'
 
 
 __author__ = 'manitou'
