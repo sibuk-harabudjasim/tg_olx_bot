@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
-from bot.conversation.constants import States
-from bot.conversation.mainmenu import mainmenu
+from bot.conversation.constants import States, mainmenu
 from bot.userstor import with_user_data
 from utils.db import Tasks
 from utils.markups import parse_list

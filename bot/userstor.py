@@ -13,6 +13,15 @@ def with_user_data(fn):
     return func
 
 
+def callback_with_user_data(fn):
+    @wraps(fn)
+    async def func(chat, cq, *args, **kwargs):
+        user_id, name = cq.src['from']['id'], cq.src['from']['first_name']
+        user = await userstorage.get_or_create(name, user_id)
+        return await fn(chat, cq, *args, **kwargs, user_data=user)
+    return func
+
+
 class UserStorage(object):
     users = None
 

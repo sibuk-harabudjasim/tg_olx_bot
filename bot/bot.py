@@ -8,6 +8,7 @@ from core.config import config
 class ParseBot(object):
     bot = None
     states = None
+    oops_handler = None
 
     def __init__(self):
         self.states = {}
@@ -21,6 +22,9 @@ class ParseBot(object):
 
     def add_state_handler(self, state, hlr):
         self.states[state] = hlr
+
+    def add_default_state_handler(self, hlr):
+        self.oops_handler = hlr
 
     def add_callback(self, regexp, fn):
         return self.bot.add_callback(regexp, fn)
@@ -42,6 +46,8 @@ class ParseBot(object):
                 handler = self.states.get(state)
                 if handler:
                     return await handler(chat, message, user_data)
+            if self.oops_handler:
+                return await self.oops_handler(chat, message, user_data)
             return await chat.send_text('Oops! Something went wrong, for now we can start again and see how it goes')
         return def_handler
 

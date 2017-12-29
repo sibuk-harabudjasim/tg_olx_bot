@@ -6,7 +6,7 @@ import aioodbc
 from core.config import config
 
 user_task_nt = namedtuple('user_task', 'id name state args')
-active_task_nt = namedtuple('active_task', 'name username tg_id args')
+active_task_nt = namedtuple('active_task', 'id name username tg_id args')
 
 
 class Users(object):
@@ -70,8 +70,31 @@ class Tasks(object):
             await cur.close()
             raise Exception("Error inserting task")
         await cur.commit()
+        await cur.execute("SELECT id FROM tasks WHERE name=? AND user_id=?", name, user_id)
+        res = await cur.fetchone()
+        task_id = res[0]
         await cur.close()
-        return user_task_nt(None, name, 1, kwargs)
+        return user_task_nt(task_id, name, 1, kwargs)
+
+    @staticmethod
+    async def update_task(task_id, state):
+        cur = await db.cursor()
+        await cur.execute("UPDATE tasks SET state=? WHERE id=?", state, task_id)
+        if not cur.rowcount:
+            await cur.close()
+            raise Exception("Error disabling task")
+        await cur.commit()
+        await cur.close()
+
+    @staticmethod
+    async def delete_task(task_id):
+        cur = await db.cursor()
+        await cur.execute("DELETE FROM tasks WHERE id=?", task_id)
+        if not cur.rowcount:
+            await cur.close()
+            raise Exception("Error deleting task")
+        await cur.commit()
+        await cur.close()
 
 
 class DB(object):
