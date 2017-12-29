@@ -8,7 +8,7 @@ if __name__ == '__main__':
 
     db.init()
     pbot.init()
-    taskpool.init(pbot.receive_data_signal)
+    taskpool.init()
     taskpool.register_default_task(GumtreeTask)
     pbot.run()
 

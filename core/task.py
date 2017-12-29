@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import asyncio
 
+from core.signal import yield_data
+
 loop = asyncio.get_event_loop()
 
 
@@ -49,9 +51,11 @@ class TaskPool(object):
 
     def __init__(self):
         self.tasks = []
+        self.signal = yield_data
 
-    def init(self, yield_signal):
-        self.signal = yield_signal
+    def init(self):
+        # subscribe to signals
+        pass
 
     def load_tasks(self, tasks_info):
         pass

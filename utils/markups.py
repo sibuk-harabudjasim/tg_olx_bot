@@ -10,4 +10,9 @@ def make_keyboard(cols, *args):
     return {'keyboard': res}
 
 
+def parse_list(words):
+    res = words.split(',')
+    return [w.strip() for w in res]
+
+
 __author__ = 'manitou'

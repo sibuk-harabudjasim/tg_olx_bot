@@ -25,4 +25,9 @@ class Signal(object):
                     raise
 
 
+yield_data = Signal('yield_data')
+start_task = Signal('start_task')
+stop_task = Signal('stop_task')
+
+
 __author__ = 'manitou'

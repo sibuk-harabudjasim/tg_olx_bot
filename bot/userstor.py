@@ -26,7 +26,6 @@ class UserStorage(object):
         if not user:
             return
         self.users[user['tg_id']] = user
-        print('>>>>>>>>>>>>>>>>>>user info', user)
         return user
 
     async def add_user(self, name, user_id):
