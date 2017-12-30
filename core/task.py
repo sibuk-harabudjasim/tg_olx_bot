@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 
+from core.config import config
 from core.signal import yield_data, start_task, stop_task
 from utils.db import Tasks
 
@@ -58,6 +59,7 @@ class TaskPool(object):
     tasks = None
     signal = None
     default_task = None
+    default_interval = config.DEFAULT_TASK_INTERVAL * 60
 
     def __init__(self):
         self.tasks = {}
@@ -68,11 +70,9 @@ class TaskPool(object):
         stop_task.add_observer('task_pool', self.delete_task_observer)
 
     async def load_tasks(self):
-        print('LOADING TASKS')
         tasks_info = await Tasks.get_active_tasks()
-        # TODO: load tasks from DB
         for task in tasks_info:
-            self.add_task(task, from_user=task.tg_id, interval=30, immediate=True)
+            self.add_task(task, from_user=task.tg_id, interval=self.default_interval, immediate=True)
 
     def register_default_task(self, cls):
         self.default_task = cls
@@ -98,13 +98,11 @@ class TaskPool(object):
 
     def delete_task_observer(self, task_id):
         print("DELETING TASK")
-        # TODO: remove task from schedule
         self.delete_task(task_id)
 
     def add_task_observer(self, tg_id, task):
         print('ADDING TASK')
-        # TODO: add task
-        self.add_task(task, from_user=tg_id, interval=30, immediate=True)
+        self.add_task(task, from_user=tg_id, interval=self.default_interval, immediate=True)
 
 
 pool = TaskPool()

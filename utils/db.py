@@ -95,6 +95,15 @@ class Tasks(object):
             raise Exception("Error deleting task")
         await cur.commit()
         await cur.close()
+        
+    @staticmethod
+    async def get_all_task_names():
+        cur = await db.cursor()
+        await cur.execute(
+            "SELECT name from tasks WHERE state = 1")
+        res = await cur.fetchall()
+        await cur.close()
+        return [t[0] for t in res]
 
 
 class DB(object):

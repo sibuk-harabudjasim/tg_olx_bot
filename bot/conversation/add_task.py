@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import re
-
 from bot.conversation.constants import States, mainmenu
 from bot.userstor import with_user_data
 from core.signal import start_task
@@ -19,6 +18,8 @@ def add_task(chat, *args, user_data):
 
 def process_url(chat, message, user_data):
     url = validate_url(message['text'])
+    if not url:
+        return chat.send_text('Oops! Looks like url you typed does not correct. Please, try again.')
     user_data['new_watch']['url'] = url
     user_data['state'] = States.ADD_TASK_BLACKLIST
     return chat.send_text('Accepted! Now write down words you DON`T want to see in advert. Comma separated, like:\nboring, stupid, broken\nYou can even write part of words or couples, but don`t forget about commas!')
@@ -59,9 +60,9 @@ def goto_name(prepend_message, chat, user_data):
 
 
 async def process_name(chat, message, user_data):
-    name = validate_name(message['text'])
+    name = await validate_name(message['text'])
     if not name:
-        return chat.sent_text('I think there`s some misspells in that name. Anyway, please, select another one.')
+        return chat.sent_text('I think I saw this name somewhere, please, select another one.')
     name_text = '{} - great name! '.format(message['text'])
     if name != message['text']:
         name_text = 'Is "{}" okay? I just cannot use that name you typed. Sorry. Anyway, you won`t need to type it again.\n'.format(name)
