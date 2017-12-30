@@ -4,7 +4,7 @@ from tasks.base import BaseParserTask
 from utils.common import Hosts
 
 
-class GumtreeTask(BaseParserTask):
+class GumtreeParser(BaseParserTask):
     type = Hosts.GUMTREE
 
     def is_resent_created(self, created_text):

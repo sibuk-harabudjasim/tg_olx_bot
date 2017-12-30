@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import aiohttp
+from datetime import datetime
 from lxml import html
+
+from core.config import config
 from utils.common import detect_host
 
 
@@ -15,10 +18,22 @@ class GenericAdvertParser(object):
                 document = html.fromstring(await page.read())
         return handler(document)
 
-    def parse_gumtree(self, document):
+    @staticmethod
+    def parse_gumtree(document):
         title = document.xpath('//h1[@class="item-title"]//text()')
         description = document.xpath('//div[@class="vip-details"]//div[@class="description"]//text()')
         return ' '.join(title + description).lower()
+
+    @staticmethod
+    def parse_otomoto(document):
+        date_updated_text = document.xpath('//meta[@property="og:updated_time"]/@content')[0]
+        date_updated = datetime.strptime(date_updated_text, "%Y-%m-%dT%H:%M:%S")
+        if date_updated > datetime.now() or (datetime.now() - date_updated).total_seconds() > config.DEFAULT_TASK_INTERVAL * 10:
+            return
+        params = filter(None, document.xpath('//div[@id="parameters"]//div[@class="offer-params__value"]//text()'))
+        features = filter(None, document.xpath('//li[@class="offer-features__item"]/text()'))
+        description = filter(None, document.xpath('//div[@id="description"]//text()'))
+        return ' '.join(list(params) + list(features) + list(description))
 
 
 __author__ = 'manitou'

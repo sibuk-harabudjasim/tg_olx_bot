@@ -16,6 +16,8 @@ class BaseParserTask(Task):
 
     async def parse_ad(self, url):
         text = await GenericAdvertParser().parse(url)
+        if not text:
+            return
         if self.blacklist_re.search(text):
             return
         if self.whitelist_re.search(text):

@@ -26,7 +26,7 @@ if __name__ == '__main__':
     except Exception as e:
         print('Error: {}'.format(str(e)))
         exit(-1)
-    task_info = active_task_nt(1, 'testtask', 1, args)
+    task_info = active_task_nt(1, 'testtask', Task.type, 1, args)
     task = Task(task_info, None, None)
     task.yield_func = yield_data
     yield_data.add_observer('print', print_result)

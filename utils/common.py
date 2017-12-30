@@ -5,10 +5,12 @@ import re
 class Hosts(object):
     GUMTREE = 'gumtree'
     OLX = 'olx'
+    OTOMOTO = 'otomoto'
 
 
 _allowed_hosts = [
-    Hosts.GUMTREE
+    Hosts.GUMTREE,
+    Hosts.OTOMOTO
 ]
 
 
