@@ -6,6 +6,7 @@ class Hosts(object):
     GUMTREE = 'gumtree'
     OLX = 'olx'
     OTOMOTO = 'otomoto'
+    ALLEGRO = 'allegro'
 
 
 _allowed_hosts = [

@@ -35,5 +35,12 @@ class GenericAdvertParser(object):
         description = filter(None, document.xpath('//div[@id="description"]//text()'))
         return ' '.join(list(params) + list(features) + list(description))
 
+    @staticmethod
+    def parse_allegro(document):
+        title = document.xpath('//h1/text()')
+        params = document.xpath('//div[@class="attributes-container"]//span[@class="attribute-value"]/text()')
+        description = filter(None, document.xpath('//div[@class="description"]//text()'))
+        return ' '.join(title + params + list(description))
+
 
 __author__ = 'manitou'
