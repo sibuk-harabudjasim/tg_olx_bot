@@ -21,7 +21,7 @@ class Task(object):
 
     def yield_data(self, *args, **kwargs):
         if self.yield_func:
-            self.yield_func(*args, **kwargs)
+            self.yield_func.emit(*args, **kwargs)
         else:
             raise Exception('No yield function in task {}'.format(self))
 

@@ -14,6 +14,7 @@ class GumtreeTask(Task):
         # TODO: finish task
         print('>>>>>>>>>> {} >>>>>>>>>>>> task start, {}, {}, {}'.format(self.name, url, blacklist, whitelist))
         await asyncio.sleep(5)
+        self.yield_data(111, 'this is advert')
         print('>>>>>>>>>> {} >>>>>>>>>>>> task ended'.format(self.name))
 
 
