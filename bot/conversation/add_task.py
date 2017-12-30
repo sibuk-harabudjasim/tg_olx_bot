@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import re
-from bot.conversation.constants import States, mainmenu
+from bot.conversation.constants import States, mainmenu, Constants
 from bot.userstor import with_user_data
 from core.signal import start_task
+from utils.common import detect_host, is_allowed_host
 from utils.db import Tasks
 from utils.markups import parse_list
 from utils.validation import validate_url, validate_blacklist, validate_whitelist, validate_name
@@ -20,7 +21,11 @@ def process_url(chat, message, user_data):
     url = validate_url(message['text'])
     if not url:
         return chat.send_text('Oops! Looks like url you typed does not correct. Please, try again.')
+    host = detect_host(url)
+    if not is_allowed_host(host):
+        return chat.send_text('Oops! I don`t know how to handle this site, for now I can parse only {}. Please, try another link.'.format(Constants.get_allowed_sites()))
     user_data['new_watch']['url'] = url
+    user_data['new_watch']['type'] = host
     user_data['state'] = States.ADD_TASK_BLACKLIST
     return chat.send_text('Accepted! Now write down words you DON`T want to see in advert. Comma separated, like:\nboring, stupid, broken\nYou can even write part of words or couples, but don`t forget about commas!')
 
@@ -69,6 +74,7 @@ async def process_name(chat, message, user_data):
     try:
         task = await Tasks.add_new_task(user_data['id'], name, **user_data['new_watch'])
     except Exception as e:
+        print('ERROR:', str(e))
         # TODO: add exception handling
         pass
     del user_data['new_watch']

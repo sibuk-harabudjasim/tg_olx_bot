@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import asyncio
 from tasks.base import BaseParserTask
+from utils.common import Hosts
 
 
 class GumtreeTask(BaseParserTask):
+    type = Hosts.GUMTREE
+
     def is_resent_created(self, created_text):
         if ' ' not in created_text:
             return False

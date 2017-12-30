@@ -11,7 +11,7 @@ if __name__ == '__main__':
     db.init()
     pbot.init()
     taskpool.init()
-    taskpool.register_default_task(GumtreeTask)
+    taskpool.register_task_type(GumtreeTask)
     asyncio.ensure_future(taskpool.load_tasks())
     pbot.run()
 

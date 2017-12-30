@@ -5,8 +5,8 @@ from collections import OrderedDict, namedtuple
 import aioodbc
 from core.config import config
 
-user_task_nt = namedtuple('user_task', 'id name state args')
-active_task_nt = namedtuple('active_task', 'id name tg_id args')
+user_task_nt = namedtuple('user_task', 'id name type state args')
+active_task_nt = namedtuple('active_task', 'id name type tg_id args')
 
 
 class Users(object):
@@ -40,32 +40,32 @@ class Tasks(object):
     async def get_user_tasks(user_id, only_active=True):
         cur = await db.cursor()
         only_active_filter = " AND state = 1" if only_active else ''
-        await cur.execute("SELECT id, name, state, args from tasks WHERE user_id = ?" + only_active_filter + " ORDER BY id", user_id)
+        await cur.execute("SELECT id, name, type, state, args from tasks WHERE user_id = ?" + only_active_filter + " ORDER BY id", user_id)
         res = await cur.fetchall()
         await cur.close()
         tasks = OrderedDict()
         for item in res:
-            task = user_task_nt(*item[:3], json.loads(item[3]))
+            task = user_task_nt(*item[:4], json.loads(item[4]))
             tasks[task.name] = task
         return tasks
 
     @staticmethod
     async def get_active_tasks():
         cur = await db.cursor()
-        await cur.execute("SELECT t.id, t.name, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id WHERE state = 1")
+        await cur.execute("SELECT t.id, t.name, t.type, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id WHERE state = 1")
         res = await cur.fetchall()
         await cur.close()
         tasks = []
         for item in res:
-            task = active_task_nt(*item[:3], json.loads(item[3]))
+            task = active_task_nt(*item[:4], json.loads(item[4]))
             tasks.append(task)
         return tasks
 
     @staticmethod
-    async def add_new_task(user_id, name, **kwargs):
+    async def add_new_task(user_id, name, type, **kwargs):
         cur = await db.cursor()
         args = json.dumps(kwargs)
-        await cur.execute("INSERT INTO tasks(name, user_id, state, args) VALUES(?, ?, 1, ?)", name, user_id, args)
+        await cur.execute("INSERT INTO tasks(name, type, user_id, state, args) VALUES(?, ?, ?, 1, ?)", name, type, user_id, args)
         if not cur.rowcount:
             await cur.close()
             raise Exception("Error inserting task")
@@ -74,7 +74,7 @@ class Tasks(object):
         res = await cur.fetchone()
         task_id = res[0]
         await cur.close()
-        return user_task_nt(task_id, name, 1, kwargs)
+        return user_task_nt(task_id, name, type, 1, kwargs)
 
     @staticmethod
     async def update_task(task_id, state):

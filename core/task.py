@@ -10,6 +10,7 @@ loop = asyncio.get_event_loop()
 
 class Task(object):
     name = None
+    type = None
     handle = None
     yield_func = None
 
@@ -58,11 +59,11 @@ class Task(object):
 class TaskPool(object):
     tasks = None
     signal = None
-    default_task = None
     default_interval = config.DEFAULT_TASK_INTERVAL * 60
 
     def __init__(self):
         self.tasks = {}
+        self.types = {}
         self.signal = yield_data
 
     def init(self):
@@ -74,15 +75,16 @@ class TaskPool(object):
         for task in tasks_info:
             self.add_task(task, from_user=task.tg_id, interval=self.default_interval, immediate=True)
 
-    def register_default_task(self, cls):
-        self.default_task = cls
+    def register_task_type(self, cls):
+        self.types[cls.type] = cls
 
     def add_task(self, task, from_user=None, interval=None, immediate=False):
-        self.add_default_task(task, from_user=from_user, interval=interval, immediate=immediate)
-
-    def add_default_task(self, task, from_user, interval, immediate=False):
-        task = self.default_task(task, from_user, interval)
-        return self.add_task_by_instance(task, immediate)
+        if task.type in self.types:
+            task_class = self.types[task.type]
+            task = task_class(task, from_user, interval)
+            self.add_task_by_instance(task, immediate)
+        else:
+            raise Exception('ERROR: cannot handle task type "{}"'.format(task.type))
 
     def add_task_by_instance(self, task, immediate=False):
         task.yield_func = self.signal

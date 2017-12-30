@@ -10,6 +10,13 @@ class Constants(object):
     TASK_DELETE_REGEX = r'task_delete_(.+)'
     TASK_RESTORE_TMPL = 'task_restore_{}'
     TASK_RESTORE_REGEX = r'task_restore_(.+)'
+    ALLOWED_SITES = ['gumtree.pl']
+
+    @classmethod
+    def get_allowed_sites(cls):
+        if len(cls.ALLOWED_SITES) == 1:
+            return cls.ALLOWED_SITES[0]
+        return ' and '.join([', '.join(cls.ALLOWED_SITES[:-1]), cls.ALLOWED_SITES[-1]])
 
 
 class Buttons(object):
