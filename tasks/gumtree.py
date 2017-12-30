@@ -1,19 +1,9 @@
 # -*- coding: utf-8 -*-
 import asyncio
-import re
-
-import aiohttp
-from lxml import html
-
-from core.task import Task
+from tasks.base import BaseParserTask
 
 
-class GumtreeTask(Task):
-    def __init__(self, task, from_user, call_interval):
-        super().__init__(task, from_user, call_interval)
-        self.blacklist_re = re.compile(r'({})'.format('|'.join(self.task_info.args['blacklist'])))
-        self.whitelist_re = re.compile(r'({})'.format('|'.join(self.task_info.args['whitelist'])))
-
+class GumtreeTask(BaseParserTask):
     def is_resent_created(self, created_text):
         if ' ' not in created_text:
             return False
@@ -24,22 +14,7 @@ class GumtreeTask(Task):
             return False
         return True
 
-    async def parse_ad(self, url):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as page:
-                document = html.fromstring(await page.read())
-        title = document.xpath('//h1[@class="item-title"]//text()')
-        description = document.xpath('//div[@class="vip-details"]//div[@class="description"]//text()')
-        text = ' '.join(title + description).lower()
-        if self.blacklist_re.search(text):
-            return
-        if self.whitelist_re.search(text):
-            self.yield_data(self.from_user, url)
-
-    async def run(self, url, blacklist, whitelist, last_called_at=None):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as page:
-                document = html.fromstring(await page.read())
+    def parse_ads_list(self, document):
         ads = document.xpath('//div[@class="view"]//li[@class="result pictures"]')
         for ad in ads:
             url = 'http://www.gumtree.pl' + ad.xpath('.//div[@class="title"]/a/@href')[0]
