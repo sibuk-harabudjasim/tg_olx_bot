@@ -52,12 +52,12 @@ class Tasks(object):
     @staticmethod
     async def get_active_tasks():
         cur = await db.cursor()
-        await cur.execute("SELECT t.name, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id WHERE state = 1")
+        await cur.execute("SELECT t.id, t.name, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id WHERE state = 1")
         res = await cur.fetchall()
         await cur.close()
         tasks = []
         for item in res:
-            task = active_task_nt(*item[:2], json.loads(item[2]))
+            task = active_task_nt(*item[:3], json.loads(item[3]))
             tasks.append(task)
         return tasks
 
