@@ -10,7 +10,7 @@ class Constants(object):
     TASK_DELETE_REGEX = r'task_delete_(.+)'
     TASK_RESTORE_TMPL = 'task_restore_{}'
     TASK_RESTORE_REGEX = r'task_restore_(.+)'
-    ALLOWED_SITES = ['gumtree.pl', 'otomoto.pl']
+    ALLOWED_SITES = ['gumtree.pl', 'otomoto.pl', 'olx.pl']
 
     @classmethod
     def get_allowed_sites(cls):

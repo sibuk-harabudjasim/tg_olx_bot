@@ -42,5 +42,12 @@ class GenericAdvertParser(object):
         description = filter(None, document.xpath('//div[@class="description"]//text()'))
         return ' '.join(title + params + list(description))
 
+    @staticmethod
+    def parse_olx(document):
+        title = document.xpath('//h1/text()')
+        params = filter(None, document.xpath('//table[contains(@class, "details")]//strong//text()'))
+        description = filter(None, document.xpath('//div[@id="textContent"]//text()'))
+        return ' '.join(title + list(params) + list(description))
+
 
 __author__ = 'manitou'

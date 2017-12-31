@@ -11,7 +11,8 @@ class Hosts(object):
 
 _allowed_hosts = [
     Hosts.GUMTREE,
-    Hosts.OTOMOTO
+    Hosts.OTOMOTO,
+    Hosts.OLX
 ]
 
 
