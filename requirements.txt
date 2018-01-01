@@ -1,4 +1,5 @@
-aioodbc
 aiotg
 aiohttp
+aiopg
 lxml
+python-dotenv

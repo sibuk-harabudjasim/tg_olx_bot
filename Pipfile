@@ -1,0 +1,23 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[dev-packages]
+
+
+
+[packages]
+
+aiotg = "*"
+aiohttp = "*"
+lxml = "*"
+python-dotenv = "*"
+aiopg = "*"
+
+
+[requires]
+
+python_version = "3.6"
