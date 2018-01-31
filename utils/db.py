@@ -1,103 +1,99 @@
 # -*- coding: utf-8 -*-
+import asyncpg
 import json
 from collections import OrderedDict, namedtuple
-
-import aiopg
-
+from functools import wraps
 from core.config import config
 
 user_task_nt = namedtuple('user_task', 'id name type state args')
 active_task_nt = namedtuple('active_task', 'id name type tg_id args')
 
 
+def with_cursor(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        if 'cursor' in kwargs:
+            return await func(*args, **kwargs)
+        async with db.cursor() as cur:
+            kwargs['cursor'] = cur
+            return await func(*args, **kwargs)
+    return wrapper
+
+
 class Users(object):
     @staticmethod
-    async def get_user_info(user_id):
-        async with db.cursor() as cur:
-            await cur.execute("SELECT id, name, tg_id FROM users WHERE tg_id=%s", (user_id,))
-            res = await cur.fetchone()
+    @with_cursor
+    async def get_user_info(user_id, cursor=None):
+        res = await cursor.fetchrow("SELECT id, name, tg_id FROM users WHERE tg_id=$1", user_id)
         if not res:
             return
-        user = {'id': res[0], 'name': res[1], 'tg_id': res[2]}
-        tasks = await Tasks.get_user_tasks(user['id'])
+        user = dict(res)
+        tasks = await Tasks.get_user_tasks(user['id'], cursor=cursor)
         user['tasks'] = tasks
         return user
 
     @staticmethod
-    async def add_user(name, tg_id):
-        async with db.cursor() as cur:
-            await cur.execute("INSERT INTO users(name, tg_id) VALUES(%s, %s)", (name, tg_id))
-            if not cur.rowcount:
-                raise Exception("Error inserting user")
-        return await Users.get_user_info(tg_id)
+    @with_cursor
+    async def add_user(name, tg_id, cursor=None):
+        await cursor.execute("INSERT INTO users(name, tg_id) VALUES($1, $2)", name, tg_id)
+        return await Users.get_user_info(tg_id, cursor=cursor)
 
 
 class Tasks(object):
     @staticmethod
-    async def get_user_tasks(user_id, only_active=True):
-        async with db.cursor() as cur:
-            only_active_filter = " AND state = 1" if only_active else ''
-            await cur.execute("SELECT id, name, type, state, args from tasks WHERE user_id = %s" + only_active_filter + " ORDER BY id", (user_id,))
-            res = await cur.fetchall()
+    @with_cursor
+    async def get_user_tasks(user_id, only_active=True, cursor=None):
+        only_active_filter = " AND state = 1" if only_active else ''
+        res = await cursor.fetch("SELECT id, name, type, state, args from tasks WHERE user_id = $1" + only_active_filter + " ORDER BY id", user_id)
         tasks = OrderedDict()
         for item in res:
-            task = user_task_nt(*item)
+            task = user_task_nt(*tuple(item)[:-1], json.loads(item['args']))
             tasks[task.name] = task
         return tasks
 
     @staticmethod
-    async def get_pending_tasks():
-        async with db.cursor() as cur:
-            await cur.execute(
-                ("SELECT t.id, t.name, t.type, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id "
-                 "WHERE state = 1 AND t.start_time IS NOT NULL AND t.start_time < NOW()"))
-            res = await cur.fetchall()
-            tasks = []
-            for item in res:
-                task = active_task_nt(*item)
-                tasks.append(task)
-            return tasks
+    @with_cursor
+    async def get_pending_tasks(cursor=None):
+        res = await cursor.fetch(
+            ("SELECT t.id, t.name, t.type, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id "
+             "WHERE state = 1 AND t.start_time IS NOT NULL AND t.start_time < NOW()"))
+        tasks = []
+        for item in res:
+            task = active_task_nt(*tuple(item)[:-1], json.loads(item['args']))
+            tasks.append(task)
+        return tasks
 
     @staticmethod
+    @with_cursor
     async def add_new_task(user_id, name, type, **kwargs):
-        async with db.cursor() as cur:
-            args = json.dumps(kwargs)
-            await cur.execute("INSERT INTO tasks(name, type, user_id, state, args) VALUES(%s, %s, %s, 1, %s)", (name, type, user_id, args))
-            if not cur.rowcount:
-                raise Exception("Error inserting task")
-            await cur.execute("SELECT id FROM tasks WHERE name=%s AND user_id=%s", (name, user_id))
-            res = await cur.fetchone()
-            task_id = res[0]
-            return user_task_nt(task_id, name, type, 1, kwargs)
+        cursor = kwargs.pop('cursor')
+        args = json.dumps(kwargs)
+        await cursor.execute("INSERT INTO tasks(name, type, user_id, state, args) VALUES($1, $2, $3, 1, $4)", name, type, user_id, args)
+        task_id = await cursor.fetchval("SELECT id FROM tasks WHERE name=$1 AND user_id=$2", name, user_id)
+        return user_task_nt(task_id, name, type, 1, kwargs)
 
     @staticmethod
+    @with_cursor
     async def update_task(task_id, **kwargs):
-        set_chunk = ', '.join(['{}=%s'.format(k) for k in kwargs])
-        async with db.cursor() as cur:
-            await cur.execute("UPDATE tasks SET {} WHERE id=%s".format(set_chunk), (*kwargs.values(), task_id))
-            if not cur.rowcount:
-                raise Exception("Error updating task")
+        cursor = kwargs.pop('cursor')
+        set_chunk = ', '.join(['{}=${}'.format(k, i + 2) for i, k in enumerate(kwargs)])
+        await cursor.execute("UPDATE tasks SET {} WHERE id=$1".format(set_chunk), task_id, *kwargs.values())
 
     @staticmethod
-    async def delete_task(task_id):
-        async with db.cursor() as cur:
-            await cur.execute("DELETE FROM tasks WHERE id=%s", (task_id,))
-            if not cur.rowcount:
-                raise Exception("Error deleting task")
+    @with_cursor
+    async def delete_task(task_id, cursor=None):
+        await cursor.execute("DELETE FROM tasks WHERE id=$1", task_id)
 
     @staticmethod
-    async def get_all_task_names():
-        async with db.cursor() as cur:
-            await cur.execute(
-                "SELECT name from tasks WHERE state = 1")
-            res = await cur.fetchall()
-            return [t[0] for t in res]
+    @with_cursor
+    async def get_all_task_names(cursor=None):
+        res = await cursor.fetch(
+            "SELECT name from tasks WHERE state = 1")
+        return [t['name'] for t in res]
 
 
 class DbCursor(object):
-    pool = None
     conn = None
-    cursor = None
 
     def __init__(self, db):
         self.db = db
@@ -109,21 +105,14 @@ class DbCursor(object):
             try:
                 self.conn = await self.db.pool.acquire()
             except Exception as e:
-                print('EXCEPTION', str(e))
+                print('DB error {}', str(e))
                 raise
-        if not self.cursor:
-            try:
-                self.cursor = await self.conn.cursor()
-            except Exception as e:
-                print('EXCEPTION', str(e))
-                raise
-        return self.cursor
+        return self.conn
 
     async def __aexit__(self, *args):
-        if self.cursor:
-            self.cursor.close()
         if self.conn:
-            self.conn.close()
+            conn, self.conn = self.conn, None
+            return await self.db.pool.release(conn)
 
 
 class DB(object):
@@ -132,7 +121,7 @@ class DB(object):
     async def init(self):
         if self.pool:
             return
-        self.pool = await aiopg.create_pool(dsn=config.DATABASE_URL, echo=config.DEBUG)
+        self.pool = await asyncpg.create_pool(dsn=config.DATABASE_URL)
 
     def cursor(self):
         return DbCursor(self)
