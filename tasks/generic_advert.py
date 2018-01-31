@@ -4,6 +4,7 @@ from datetime import datetime
 from lxml import html
 
 from core.config import config
+from utils import log
 from utils.common import detect_host
 
 
@@ -12,7 +13,8 @@ class GenericAdvertParser(object):
         host = detect_host(url)
         handler = getattr(self, 'parse_' + host, None)
         if not handler:
-            raise Exception('unsupported URL ({}): {}'.format(host, url))
+            log.warning('Unsupported URL ({}): {}', host, url)
+            return
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as page:
                 document = html.fromstring(await page.read())
