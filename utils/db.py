@@ -3,6 +3,9 @@ import asyncpg
 import json
 from collections import OrderedDict, namedtuple
 from functools import wraps
+
+from datetime import datetime
+
 from core.config import config
 from utils import log
 
@@ -69,7 +72,9 @@ class Tasks(object):
     async def add_new_task(user_id, name, type, **kwargs):
         cursor = kwargs.pop('cursor')
         args = json.dumps(kwargs)
-        await cursor.execute("INSERT INTO tasks(name, type, user_id, state, args) VALUES($1, $2, $3, 1, $4)", name, type, user_id, args)
+        await cursor.execute(
+            "INSERT INTO tasks(name, type, user_id, state, args, start_time) VALUES($1, $2, $3, 1, $4, $5)",
+            name, type, user_id, args, datetime.now())
         task_id = await cursor.fetchval("SELECT id FROM tasks WHERE name=$1 AND user_id=$2", name, user_id)
         return user_task_nt(task_id, name, type, 1, kwargs)
 
