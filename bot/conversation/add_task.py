@@ -3,6 +3,7 @@ import re
 from bot.conversation.constants import States, mainmenu, Constants
 from bot.userstor import with_user_data
 from core.signal import start_task
+from utils import log
 from utils.common import detect_host, is_allowed_host
 from utils.db import Tasks
 from utils.markups import parse_list
@@ -13,7 +14,6 @@ from utils.validation import validate_url, validate_blacklist, validate_whitelis
 def add_task(chat, *args, user_data):
     user_data['new_watch'] = {}
     user_data['state'] = States.ADD_TASK_URL
-    print('USER_DATA', user_data)
     return chat.send_text('Great! I will need URL, and two lists of words: whitelist and blacklist.\nLet`s start with URL, type it right now!')
 
 
@@ -74,9 +74,7 @@ async def process_name(chat, message, user_data):
     try:
         task = await Tasks.add_new_task(user_data['id'], name, **user_data['new_watch'])
     except Exception as e:
-        print('ERROR:', str(e))
-        # TODO: add exception handling
-        pass
+        log.error('add_task() error: {}', str(e))
     del user_data['new_watch']
     del user_data['state']
     start_task.emit(user_data['tg_id'], task)

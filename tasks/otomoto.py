@@ -2,7 +2,7 @@
 import asyncio
 
 from tasks.base import BaseParserTask
-from utils.common import Hosts
+from utils.common import Hosts, catch
 
 
 class OtomotoParser(BaseParserTask):
@@ -17,7 +17,7 @@ class OtomotoParser(BaseParserTask):
         urls = set([ad.xpath('.//a[@class="offer-title__link"]/@href')[0] for ad in ads])
         new_urls = urls - self.seen_urls
         for url in new_urls:
-            asyncio.ensure_future(self.parse_ad(url))
+            asyncio.ensure_future(catch(self.parse_ad(url)))
         self.task_data['seen_urls'] = urls
 
 

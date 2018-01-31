@@ -2,6 +2,8 @@
 import asyncio
 from collections import OrderedDict
 
+from utils import log
+
 
 class Signal(object):
     name = None
@@ -28,7 +30,7 @@ class Signal(object):
                 else:
                     callable(*args, **kwargs)
             except Exception as e:
-                print("GOT AN EXCEPTION IN", self, str(e))
+                log.error("{} exception: {}", self, str(e))
                 if raise_exc:
                     raise
 

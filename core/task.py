@@ -7,6 +7,7 @@ from collections import defaultdict
 
 from core.config import config
 from core.signal import yield_data, start_task, stop_task
+from utils import log
 from utils.db import Tasks
 
 loop = asyncio.get_event_loop()
@@ -53,14 +54,14 @@ class TaskPool(object):
 
     async def _tasks_execution(self):
         while True:
-            print('Task pool: executing tasks...')
+            log.debug('Task pool: executing tasks...')
             tasks = await self._get_pending_tasks()
             for task in tasks:
                 try:
                     await task.run()
                     await self._update_task_start_time(task)
                 except Exception as e:
-                    print("Exception running task {}: {}".format(task.__class__.__name__, str(e)))
+                    log.error("Exception running task {}: {}", task.__class__.__name__, str(e))
             await asyncio.sleep(self.pool_interval)
 
     async def _get_pending_tasks(self):
@@ -76,7 +77,7 @@ class TaskPool(object):
             task_data = self.storage[task_info.id]
             return task_class(task_info, task_data, self.signal)
         else:
-            print('ERROR: cannot handle task type "{}"'.format(task_info.type))
+            log.warning('Cannot handle task type "{}"', task_info.type)
 
     def _update_task_start_time(self, task):
         return Tasks.update_task(task.task_info.id, start_time=(datetime.now() + timedelta(seconds=self.default_interval)))

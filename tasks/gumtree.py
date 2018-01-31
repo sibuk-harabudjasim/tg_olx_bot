@@ -3,7 +3,7 @@ import asyncio
 
 from core.config import config
 from tasks.base import BaseParserTask
-from utils.common import Hosts
+from utils.common import Hosts, catch
 
 
 class GumtreeParser(BaseParserTask):
@@ -25,8 +25,7 @@ class GumtreeParser(BaseParserTask):
             url = 'http://www.gumtree.pl' + ad.xpath('.//div[@class="title"]/a/@href')[0]
             created = ad.xpath('.//div[@class="creation-date"]/span[last()]/text()')[0].strip()
             if self.is_resent_created(created):
-                print('GUMTREE: found new ad - ', url)
-                asyncio.ensure_future(self.parse_ad(url))
+                asyncio.ensure_future(catch(self.parse_ad(url)))
 
 
 __author__ = 'manitou'

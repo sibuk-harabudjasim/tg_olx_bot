@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import re
+
+from utils import log
 
 
 class Hosts(object):
@@ -24,6 +27,14 @@ def detect_host(url):
 
 def is_allowed_host(host):
     return host in _allowed_hosts
+
+
+async def catch(coro):
+    try:
+        if asyncio.iscoroutine(coro):
+            await coro
+    except Exception as e:
+        log.error('catch(): {}', str(e))
 
 
 __author__ = 'manitou'

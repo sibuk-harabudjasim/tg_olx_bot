@@ -4,6 +4,7 @@ from aiotg import Bot
 from bot.userstor import with_user_data
 from core.config import config
 from core.signal import yield_data
+from utils import log
 
 
 class ParseBot(object):
@@ -22,7 +23,7 @@ class ParseBot(object):
         yield_data.add_observer('pbot', self.data_receive_observer)
 
     async def data_receive_observer(self, tg_id, data):
-        print("DATA RECEIVED: to {}, data: {}".format(tg_id, data))
+        log.debug("DATA RECEIVED: to {}, data: {}", tg_id, data)
         chat = self.bot.private(tg_id)
         return chat.send_text('Look what I found!\n{}'.format(data))
 
@@ -44,7 +45,6 @@ class ParseBot(object):
     def get_default_handler(self):
         @with_user_data
         async def def_handler(chat, message, user_data):
-            print(chat, message, user_data, self.states)
             state = user_data.get('state')
             if state:
                 handler = self.states.get(state)

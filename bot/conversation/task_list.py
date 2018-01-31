@@ -3,6 +3,7 @@ from bot.conversation.constants import Buttons, Constants
 from bot.conversation.error import error_message
 from bot.userstor import with_user_data, callback_with_user_data
 from core.signal import stop_task, start_task
+from utils import log
 from utils.db import Tasks
 from utils.markups import make_inline_keyboard
 
@@ -12,7 +13,6 @@ def task_list(chat, *args, user_data):
     if not user_data['tasks']:
         return chat.send_text('You don`t have any. Try to add them using "{}" on keyboard.'.format(Buttons.ADD_WATCH))
     task_buttons = []
-    print('TASKS', user_data)
     for task in user_data['tasks'].values():
         task_buttons.append((task.name, Constants.TASK_INFO_TMPL.format(task.name)))
     tasks_keyboard = make_inline_keyboard(1, *task_buttons)
@@ -23,9 +23,9 @@ def task_list(chat, *args, user_data):
 async def task_info(chat, cq, match, user_data):
     await cq.answer()
     task_name = match.group(1)
-    print('TASK MATCH', match, task_name, user_data)
     if task_name not in user_data['tasks']:
-        # TODO: replace with more precise message
+        log.warning('Task name \'{}\' not in user tasks {}', task_name, user_data['tasks'].keys())
+        log.debug('User data: {}', user_data)
         return await error_message(chat, None, user_data)
     task = user_data['tasks'][task_name]
     info = '''

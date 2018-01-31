@@ -4,6 +4,7 @@ import json
 from collections import OrderedDict, namedtuple
 from functools import wraps
 from core.config import config
+from utils import log
 
 user_task_nt = namedtuple('user_task', 'id name type state args')
 active_task_nt = namedtuple('active_task', 'id name type tg_id args')
@@ -105,7 +106,7 @@ class DbCursor(object):
             try:
                 self.conn = await self.db.pool.acquire()
             except Exception as e:
-                print('DB error {}', str(e))
+                log.error('DB error {}', str(e))
                 raise
         return self.conn
 
