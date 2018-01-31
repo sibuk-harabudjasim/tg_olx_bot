@@ -10,11 +10,10 @@ if __name__ == '__main__':
     from bot.bot import parsebot as pbot
 
     pbot.init()
-    taskpool.init()
     taskpool.register_task_type(GumtreeParser)
     taskpool.register_task_type(OtomotoParser)
     taskpool.register_task_type(OlxParser)
-    asyncio.ensure_future(taskpool.load_tasks())
+    taskpool.init()
     pbot.run()
 
 __author__ = 'manitou'

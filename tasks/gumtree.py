@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
+
+from core.config import config
 from tasks.base import BaseParserTask
 from utils.common import Hosts
 
@@ -13,7 +15,7 @@ class GumtreeParser(BaseParserTask):
         parts = created_text.split(' ')
         if parts[1] != 'min':
             return False
-        if int(parts[0]) > self.call_interval / 60:
+        if int(parts[0]) > config.DEFAULT_TASK_INTERVAL:
             return False
         return True
 

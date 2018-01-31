@@ -9,8 +9,8 @@ from tasks.generic_advert import GenericAdvertParser
 
 
 class BaseParserTask(Task):
-    def __init__(self, task, from_user, call_interval):
-        super().__init__(task, from_user, call_interval)
+    def __init__(self, task, task_data, yield_function):
+        super().__init__(task, task_data, yield_function)
         self.blacklist_re = re.compile(r'({})'.format('|'.join(self.task_info.args['blacklist'])))
         self.whitelist_re = re.compile(r'({})'.format('|'.join(self.task_info.args['whitelist'])))
 
@@ -31,7 +31,8 @@ class BaseParserTask(Task):
         '''
         raise NotImplementedError
 
-    async def run(self, url, blacklist, whitelist, last_called_at=None):
+    async def run(self):
+        url = self.task_info.args['url']
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as page:
                 document = html.fromstring(await page.read())

@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 import asyncio
 
+from datetime import datetime, timedelta
+
+from collections import defaultdict
+
 from core.config import config
 from core.signal import yield_data, start_task, stop_task
 from utils.db import Tasks
@@ -14,12 +18,12 @@ class Task(object):
     handle = None
     yield_func = None
 
-    def __init__(self, task, from_user, call_interval):
+    def __init__(self, task, task_data, yield_function):
         self.task_info = task
+        self.task_data = task_data
         self.name = task.name
-        self.from_user = from_user
-        self.call_interval = call_interval
-        self.running = False
+        self.from_user = task.tg_id
+        self.yield_func = yield_function
 
     def yield_data(self, *args, **kwargs):
         if self.yield_func:
@@ -30,81 +34,52 @@ class Task(object):
     async def run(self, **kwargs):
         raise NotImplementedError
 
-    async def _run(self, kwargs):
-        self.handle = None
-        await self.run(**kwargs)
-        if self.running:
-            self.handle = loop.call_later(self.call_interval, self._rerun, kwargs)
-
-    def _rerun(self, kwargs):
-        asyncio.ensure_future(self._run(kwargs))
-
-    def start(self, immediate=False):
-        if self.running:
-            return
-        if immediate:
-            asyncio.ensure_future(self._run(self.task_info.args))
-        else:
-            self.handle = loop.call_later(self.call_interval, self._rerun, self.task_info.args)
-        self.running = True
-
-    def cancel(self):
-        if not self.running:
-            return
-        if self.handle:
-            handle, self.handle = self.handle, None
-            handle.cancel()
-
 
 class TaskPool(object):
-    tasks = None
     signal = None
     default_interval = config.DEFAULT_TASK_INTERVAL * 60
+    pool_interval = 60
 
     def __init__(self):
-        self.tasks = {}
         self.types = {}
+        self.storage = defaultdict(dict)
         self.signal = yield_data
 
     def init(self):
-        start_task.add_observer('task_pool', self.add_task_observer)
-        stop_task.add_observer('task_pool', self.delete_task_observer)
-
-    async def load_tasks(self):
-        tasks_info = await Tasks.get_active_tasks()
-        for task in tasks_info:
-            self.add_task(task, from_user=task.tg_id, interval=self.default_interval, immediate=True)
+        asyncio.ensure_future(self._tasks_execution())
 
     def register_task_type(self, cls):
         self.types[cls.type] = cls
 
-    def add_task(self, task, from_user=None, interval=None, immediate=False):
-        if task.type in self.types:
-            task_class = self.types[task.type]
-            task = task_class(task, from_user, interval)
-            self.add_task_by_instance(task, immediate)
+    async def _tasks_execution(self):
+        while True:
+            print('Task pool: executing tasks...')
+            tasks = await self._get_pending_tasks()
+            for task in tasks:
+                try:
+                    await task.run()
+                    await self._update_task_start_time(task)
+                except Exception as e:
+                    print("Exception running task {}: {}".format(task.__class__.__name__, str(e)))
+            await asyncio.sleep(self.pool_interval)
+
+    async def _get_pending_tasks(self):
+        tasks_info = await Tasks.get_pending_tasks()
+        return filter(None, [self._make_task(task_info) for task_info in tasks_info])
+
+    def _get_task_data(self, task):
+        return self.storage[task.task_info.id]
+
+    def _make_task(self, task_info):
+        if task_info.type in self.types:
+            task_class = self.types[task_info.type]
+            task_data = self.storage[task_info.id]
+            return task_class(task_info, task_data, self.signal)
         else:
-            raise Exception('ERROR: cannot handle task type "{}"'.format(task.type))
+            print('ERROR: cannot handle task type "{}"'.format(task_info.type))
 
-    def add_task_by_instance(self, task, immediate=False):
-        task.yield_func = self.signal
-        self.tasks[task.task_info.id] = task
-        task.start(immediate)
-
-    def delete_task(self, task_id):
-        if task_id not in self.tasks:
-            raise Exception('no such task')
-        task = self.tasks[task_id]
-        del self.tasks[task_id]
-        task.cancel()
-
-    def delete_task_observer(self, task_id):
-        print("DELETING TASK")
-        self.delete_task(task_id)
-
-    def add_task_observer(self, tg_id, task):
-        print('ADDING TASK')
-        self.add_task(task, from_user=tg_id, interval=self.default_interval, immediate=True)
+    def _update_task_start_time(self, task):
+        return Tasks.update_task(task.task_info.id, start_time=(datetime.now() + timedelta(seconds=self.default_interval)))
 
 
 pool = TaskPool()

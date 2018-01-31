@@ -46,9 +46,11 @@ class Tasks(object):
         return tasks
 
     @staticmethod
-    async def get_active_tasks():
+    async def get_pending_tasks():
         async with db.cursor() as cur:
-            await cur.execute("SELECT t.id, t.name, t.type, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id WHERE state = 1")
+            await cur.execute(
+                ("SELECT t.id, t.name, t.type, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id "
+                 "WHERE state = 1 AND t.start_time IS NOT NULL AND t.start_time < NOW()"))
             res = await cur.fetchall()
             tasks = []
             for item in res:
@@ -69,11 +71,12 @@ class Tasks(object):
             return user_task_nt(task_id, name, type, 1, kwargs)
 
     @staticmethod
-    async def update_task(task_id, state):
+    async def update_task(task_id, **kwargs):
+        set_chunk = ', '.join(['{}=%s'.format(k) for k in kwargs])
         async with db.cursor() as cur:
-            await cur.execute("UPDATE tasks SET state=%s WHERE id=%s", (state, task_id))
+            await cur.execute("UPDATE tasks SET {} WHERE id=%s".format(set_chunk), (*kwargs.values(), task_id))
             if not cur.rowcount:
-                raise Exception("Error disabling task")
+                raise Exception("Error updating task")
 
     @staticmethod
     async def delete_task(task_id):
