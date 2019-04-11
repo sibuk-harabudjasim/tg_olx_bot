@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import importlib
 import os
+from environs import Env
 
 _required_params = {
     'DEBUG': bool,
@@ -15,6 +16,8 @@ class ConfigContainer(object):
     _config_container = None
 
     def __init__(self):
+        env = Env()
+        env.read_env()
         self._load_config(os.environ.get('BOT_CONFIG_PATH'))
         self._config_container = {}
 
