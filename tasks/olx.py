@@ -3,6 +3,7 @@
 import asyncio
 
 from tasks.base import BaseParserTask
+from utils import log
 from utils.common import Hosts, catch
 
 
@@ -17,6 +18,9 @@ class OlxParser(BaseParserTask):
         ads = document.xpath('//table[@id="offers_table"]//tr[@class="wrap"]')
         urls = set([ad.xpath('.//a[contains(@class, "link")][strong]/@href')[0] for ad in ads])
         new_urls = urls - self.seen_urls
+        if not new_urls:
+            log.debug("No new ADs")
+            return
         for url in new_urls:
             asyncio.ensure_future(catch(self.parse_ad(url)))
         self.task_data['seen_urls'] = urls

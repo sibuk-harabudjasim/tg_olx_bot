@@ -18,6 +18,7 @@ class BaseParserTask(Task):
 
     @staticmethod
     async def _fetch_text(url):
+        log.debug("Fetching AD from '{}'...", url)
         return await GenericAdvertParser().parse(url)
 
     def _validate_text(self, text, url):
@@ -46,6 +47,7 @@ class BaseParserTask(Task):
 
     async def run(self):
         url = self.task_info.args['url']
+        log.debug("Fetching list from '{}'...", url)
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as page:
                 document = html.fromstring(await page.read())
