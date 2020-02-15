@@ -6,22 +6,28 @@ import aiohttp
 
 from core.task import Task
 from tasks.generic_advert import GenericAdvertParser
+from utils import log
+from utils.validation import escape_re
 
 
 class BaseParserTask(Task):
     def __init__(self, task, task_data, yield_function):
         super().__init__(task, task_data, yield_function)
-        self.blacklist_re = re.compile(r'({})'.format('|'.join(self.task_info.args['blacklist'])))
-        self.whitelist_re = re.compile(r'({})'.format('|'.join(self.task_info.args['whitelist'])))
+        self.blacklist_re = re.compile(r'({})'.format(escape_re('|'.join(self.task_info.args['blacklist']))))
+        self.whitelist_re = re.compile(r'({})'.format(escape_re('|'.join(self.task_info.args['whitelist']))))
 
     async def parse_ad(self, url):
         text = await GenericAdvertParser().parse(url)
         if not text:
+            log.debug("Parser returned no data for url '{}'", url)
             return
         if self.blacklist_re.search(text):
+            log.debug("Blacklist match for ad '{}': {}", url, self.blacklist_re.search(text))
             return
         if self.whitelist_re.search(text):
             self.yield_data(self.from_user, url)
+            return
+        log.debug("No whitelist match for ad '{}': {}", url, self.task_info.args['whitelist'])
 
     def parse_ads_list(self, document):
         '''

@@ -31,6 +31,11 @@ def _clean_name(name):
     return re.sub(r'[\'"\?!\*\.\$#@%\^&\(\)]', '', name)
 
 
+def escape_re(value):
+    value = value.replace('.', '\\.')
+    return value
+
+
 async def validate_name(name):
     names = await Tasks.get_all_task_names()
     name = _clean_name(name)

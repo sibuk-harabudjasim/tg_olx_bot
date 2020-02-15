@@ -23,7 +23,7 @@ class ParseBot(object):
         yield_data.add_observer('pbot', self.data_receive_observer)
 
     async def data_receive_observer(self, tg_id, data):
-        log.debug("DATA RECEIVED: to {}, data: {}", tg_id, data)
+        log.info("DATA RECEIVED: to {}, data: {}", tg_id, data)
         chat = self.bot.private(tg_id)
         return chat.send_text('Look what I found!\n{}'.format(data))
 

@@ -54,7 +54,7 @@ class TaskPool(object):
 
     async def _tasks_execution(self):
         while True:
-            log.debug('Task pool: executing tasks...')
+            log.info('Task pool: executing tasks...')
             tasks = await self._get_pending_tasks()
             for task in tasks:
                 try:

@@ -11,7 +11,7 @@ def init():
     logging.basicConfig(
         # filename=config.LOGFILE_PATH,
         format='%(asctime)s - %(levelname)s: %(message)s',
-        level=logging.DEBUG if config.DEBUG else logging.WARNING
+        level=logging.DEBUG if config.DEBUG else logging.INFO
     )
 
 
@@ -23,6 +23,10 @@ def _make_message(fmt, *args, **kwargs):
 
 def debug(fmt, *args, **kwargs):
     logging.debug(_make_message(fmt, *args, **kwargs))
+
+
+def info(fmt, *args, **kwargs):
+    logging.info(_make_message(fmt, *args, **kwargs))
 
 
 def error(fmt, *args, **kwargs):

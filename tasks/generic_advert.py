@@ -28,10 +28,6 @@ class GenericAdvertParser(object):
 
     @staticmethod
     def parse_otomoto(document):
-        date_updated_text = document.xpath('//meta[@property="og:updated_time"]/@content')[0]
-        date_updated = datetime.strptime(date_updated_text, "%Y-%m-%dT%H:%M:%S")
-        if date_updated > datetime.now() or (datetime.now() - date_updated).total_seconds() > config.DEFAULT_TASK_INTERVAL * 10:
-            return
         params = filter(None, document.xpath('//div[@id="parameters"]//div[@class="offer-params__value"]//text()'))
         features = filter(None, document.xpath('//li[@class="offer-features__item"]/text()'))
         description = filter(None, document.xpath('//div[@id="description"]//text()'))
