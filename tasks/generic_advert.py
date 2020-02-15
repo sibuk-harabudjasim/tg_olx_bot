@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+import re
+
 import aiohttp
-from datetime import datetime
 from lxml import html
 
-from core.config import config
 from utils import log
 from utils.common import detect_host
 
@@ -18,7 +18,14 @@ class GenericAdvertParser(object):
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as page:
                 document = html.fromstring(await page.read())
-        return handler(document)
+        return self._prettify(handler(document))
+
+    @staticmethod
+    def _prettify(text):
+        if not text: return
+        text = re.sub(r'\n', ' ', text)
+        text = re.sub(r'\s+', ' ', text)
+        return text
 
     @staticmethod
     def parse_gumtree(document):

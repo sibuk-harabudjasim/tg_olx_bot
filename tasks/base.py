@@ -13,11 +13,14 @@ from utils.validation import escape_re
 class BaseParserTask(Task):
     def __init__(self, task, task_data, yield_function):
         super().__init__(task, task_data, yield_function)
-        self.blacklist_re = re.compile(r'({})'.format(escape_re('|'.join(self.task_info.args['blacklist']))))
-        self.whitelist_re = re.compile(r'({})'.format(escape_re('|'.join(self.task_info.args['whitelist']))))
+        self.blacklist_re = re.compile(r'({})'.format(escape_re('|'.join(self.task_info.args['blacklist']))), re.I)
+        self.whitelist_re = re.compile(r'({})'.format(escape_re('|'.join(self.task_info.args['whitelist']))), re.I)
 
-    async def parse_ad(self, url):
-        text = await GenericAdvertParser().parse(url)
+    @staticmethod
+    async def _fetch_text(url):
+        return await GenericAdvertParser().parse(url)
+
+    def _validate_text(self, text, url):
         if not text:
             log.debug("Parser returned no data for url '{}'", url)
             return
@@ -25,9 +28,13 @@ class BaseParserTask(Task):
             log.debug("Blacklist match for ad '{}': {}", url, self.blacklist_re.search(text))
             return
         if self.whitelist_re.search(text):
-            self.yield_data(self.from_user, url)
-            return
+            return True
         log.debug("No whitelist match for ad '{}': {}", url, self.task_info.args['whitelist'])
+
+    async def parse_ad(self, url):
+        text = await self._fetch_text(url)
+        if self._validate_text(text, url):
+            self.yield_data(self.from_user, url)
 
     def parse_ads_list(self, document):
         '''
