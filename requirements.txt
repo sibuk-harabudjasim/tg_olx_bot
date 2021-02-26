@@ -1,6 +1,6 @@
 pyyaml==3.12
 lxml==4.1.1
-aiohttp==2.3.9
+aiohttp==3.7.4
 yarl==1.1.0
 pathtools==0.1.2
 asyncpg==0.18.3
