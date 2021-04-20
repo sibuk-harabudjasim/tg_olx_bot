@@ -3,7 +3,7 @@ lxml==4.1.1
 aiohttp==2.3.9
 yarl==1.1.0
 pathtools==0.1.2
-asyncpg==0.18.3
+asyncpg==0.21.0
 async-timeout==2.0.0
 argh==0.26.2
 chardet==3.0.4
