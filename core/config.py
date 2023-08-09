@@ -6,7 +6,7 @@ from environs import Env
 _required_params = {
     'DEBUG': bool,
     'TELEGRAM_TOKEN': str,
-    'DB_DSN': str,
+    'DATABASE_URL': str,
     'WEBHOOK_URL': str,
     'DEFAULT_TASK_INTERVAL': int
 }
@@ -18,8 +18,8 @@ class ConfigContainer(object):
     def __init__(self):
         env = Env()
         env.read_env()
-        self._load_config(os.environ.get('BOT_CONFIG_PATH'))
         self._config_container = {}
+        self._load_config(os.environ.get('BOT_CONFIG_PATH'))
 
     def _get_param(self, name):
         cast_type = _required_params.get(name, str)

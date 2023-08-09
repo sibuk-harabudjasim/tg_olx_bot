@@ -22,7 +22,7 @@ _allowed_hosts = [
 def detect_host(url):
     host_re = re.compile(r'^.+?//(www.)?(.+?)\.\w{2,}/')
     result = host_re.search(url)
-    return result.group(2)
+    return result.group(2) if result else ""
 
 
 def is_allowed_host(host):
