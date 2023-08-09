@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 import asyncpg
 import json
+import logging
 from collections import OrderedDict, namedtuple
 from functools import wraps
 
 from datetime import datetime
 
 from core.config import config
-from utils import log
 
+
+log = logging.getLogger()
 user_task_nt = namedtuple('user_task', 'id name type state args')
 active_task_nt = namedtuple('active_task', 'id name type tg_id args')
 
@@ -46,7 +48,7 @@ class Users(object):
 class Tasks(object):
     @staticmethod
     @with_cursor
-    async def get_user_tasks(user_id, only_active=True, cursor=None):
+    async def get_user_tasks(user_id, only_active=True, cursor=None) -> list[user_task_nt]:
         only_active_filter = " AND state = 1" if only_active else ''
         res = await cursor.fetch("SELECT id, name, type, state, args from tasks WHERE user_id = $1" + only_active_filter + " ORDER BY id", user_id)
         tasks = OrderedDict()
@@ -57,7 +59,7 @@ class Tasks(object):
 
     @staticmethod
     @with_cursor
-    async def get_pending_tasks(cursor=None):
+    async def get_pending_tasks(cursor=None) -> list[active_task_nt]:
         res = await cursor.fetch(
             ("SELECT t.id, t.name, t.type, u.tg_id, t.args from tasks t JOIN users u ON u.id = t.user_id "
              "WHERE state = 1 AND t.start_time IS NOT NULL AND t.start_time < NOW()"))
@@ -69,7 +71,7 @@ class Tasks(object):
 
     @staticmethod
     @with_cursor
-    async def add_new_task(user_id, name, type, **kwargs):
+    async def add_new_task(user_id: int, name: str, type: str, **kwargs) -> user_task_nt:
         cursor = kwargs.pop('cursor')
         args = json.dumps(kwargs)
         await cursor.execute(
@@ -80,19 +82,19 @@ class Tasks(object):
 
     @staticmethod
     @with_cursor
-    async def update_task(task_id, **kwargs):
+    async def update_task(task_id: int, **kwargs):
         cursor = kwargs.pop('cursor')
         set_chunk = ', '.join(['{}=${}'.format(k, i + 2) for i, k in enumerate(kwargs)])
         await cursor.execute("UPDATE tasks SET {} WHERE id=$1".format(set_chunk), task_id, *kwargs.values())
 
     @staticmethod
     @with_cursor
-    async def delete_task(task_id, cursor=None):
+    async def delete_task(task_id: int, cursor=None):
         await cursor.execute("DELETE FROM tasks WHERE id=$1", task_id)
 
     @staticmethod
     @with_cursor
-    async def get_all_task_names(cursor=None):
+    async def get_all_task_names(cursor=None) -> list[str]:
         res = await cursor.fetch(
             "SELECT name from tasks WHERE state = 1")
         return [t['name'] for t in res]
@@ -111,7 +113,7 @@ class DbCursor(object):
             try:
                 self.conn = await self.db.pool.acquire()
             except Exception as e:
-                log.error('DB error {}', str(e))
+                log.error(f"DB error {str(e)}")
                 raise
         return self.conn
 

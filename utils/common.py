@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import re
+import typing
+import logging
 
-from utils import log
+
+log = logging.getLogger()
 
 
 class Hosts(object):
@@ -19,24 +22,23 @@ _allowed_hosts = [
 ]
 
 
-def detect_host(url):
+def detect_host(url: str) -> str | None:
     host_re = re.compile(r'^.+?//(www.)?(.+?)\.\w{2,}/')
     result = host_re.search(url)
-    return result.group(2) if result else ""
+    return result.group(2) if result else None
 
 
-def is_allowed_host(host):
+def is_allowed_host(host: str) -> bool:
     return host in _allowed_hosts
 
 
-async def catch(coro):
+async def catch(coro: typing.Any) -> typing.Any:
     try:
         if asyncio.iscoroutine(coro):
-            await coro
+            return await coro
+        return coro
     except Exception as e:
-        log.error('catch(): {}', str(e))
-
-
+        log.error(f"catch(): {str(e)}")
 
 
 __author__ = 'manitou'
