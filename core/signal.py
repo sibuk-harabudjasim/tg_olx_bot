@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import logging
+import traceback
 from collections import OrderedDict
 
 
@@ -33,6 +34,7 @@ class Signal(object):
                     callable(*args, **kwargs)
             except Exception as e:
                 log.error(f"{self} exception: {str(e)}")
+                log.error(traceback.format_exc())
                 if raise_exc:
                     raise
 

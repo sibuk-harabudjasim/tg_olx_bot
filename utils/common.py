@@ -3,6 +3,7 @@ import asyncio
 import re
 import typing
 import logging
+import traceback
 
 
 log = logging.getLogger()
@@ -39,6 +40,7 @@ async def catch(coro: typing.Any) -> typing.Any:
         return coro
     except Exception as e:
         log.error(f"catch(): {str(e)}")
+        log.error(traceback.format_exc())
 
 
 __author__ = 'manitou'

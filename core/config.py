@@ -21,7 +21,6 @@ class ConfigContainer(object):
         self._load_config()
 
     def _load_config(self):
-        print(typing.get_type_hints(self))
         for param, type_ in typing.get_type_hints(self).items():
             raw_value = os.getenv(param)
             if not raw_value:
