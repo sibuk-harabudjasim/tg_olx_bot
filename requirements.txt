@@ -3,4 +3,3 @@ aiohttp==3.8.5
 asyncpg==0.28.0
 aiotg==2.0.0
 python-dotenv==1.0.0
-environs==9.5.0
