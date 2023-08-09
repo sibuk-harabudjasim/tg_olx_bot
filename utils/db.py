@@ -84,7 +84,9 @@ class Tasks(object):
     @with_cursor
     async def update_task(task_id: int, **kwargs):
         cursor = kwargs.pop('cursor')
-        set_chunk = ', '.join(['{}=${}'.format(k, i + 2) for i, k in enumerate(kwargs)])
+        if 'args' in kwargs and not isinstance(kwargs['args'], str):
+            kwargs['args'] = json.dumps(kwargs['args'])
+        set_chunk = ', '.join([f"{k}=${i + 2}" for i, k in enumerate(kwargs)])
         await cursor.execute("UPDATE tasks SET {} WHERE id=$1".format(set_chunk), task_id, *kwargs.values())
 
     @staticmethod

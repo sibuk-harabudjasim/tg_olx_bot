@@ -8,8 +8,8 @@ from utils.common import Hosts, catch
 class OtomotoParser(BaseParserTask):
     type = Hosts.OTOMOTO
 
-    def __init__(self, task, task_data, yield_function):
-        super().__init__(task, task_data, yield_function)
+    def __init__(self, task, yield_function):
+        super().__init__(task, yield_function)
         self.seen_urls = self.task_data.get('seen_urls', set())
 
     def parse_ads_list(self, document):
@@ -19,6 +19,7 @@ class OtomotoParser(BaseParserTask):
         for url in new_urls:
             asyncio.ensure_future(catch(self.parse_ad(url)))
         self.task_data['seen_urls'] = urls
+        return self.task_data
 
 
 __author__ = 'manitou'

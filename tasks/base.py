@@ -15,10 +15,10 @@ from utils.db import active_task_nt
 log = logging.getLogger()
 
 class BaseParserTask(Task):
-    def __init__(self, db_task: active_task_nt, task_data: dict, yield_function: Signal):
-        super().__init__(db_task, task_data, yield_function)
-        self.blacklist_re = re.compile(r'({})'.format(escape_re('|'.join(self.db_task.args['blacklist']))), re.I)
-        self.whitelist_re = re.compile(r'({})'.format(escape_re('|'.join(self.db_task.args['whitelist']))), re.I)
+    def __init__(self, db_task: active_task_nt, yield_function: Signal):
+        super().__init__(db_task, yield_function)
+        self.blacklist_re = re.compile(r'({})'.format(escape_re('|'.join(self.task_data['blacklist']))), re.I)
+        self.whitelist_re = re.compile(r'({})'.format(escape_re('|'.join(self.task_data['whitelist']))), re.I)
 
     @staticmethod
     async def _fetch_text(url: str) -> str:
@@ -34,7 +34,7 @@ class BaseParserTask(Task):
             return
         if self.whitelist_re.search(text):
             return True
-        log.debug(f"No whitelist match for ad '{url}': {self.db_task.args['whitelist']}")
+        log.debug(f"No whitelist match for ad '{url}': {self.task_data['whitelist']}")
 
     async def parse_ad(self, url):
         text = await self._fetch_text(url)
@@ -50,7 +50,7 @@ class BaseParserTask(Task):
         raise NotImplementedError
 
     async def run(self):
-        url = self.db_task.args['url']
+        url = self.task_data['url']
         log.debug(f"Fetching list from '{url}'...")
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as page:
