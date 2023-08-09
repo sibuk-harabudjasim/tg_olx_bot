@@ -50,8 +50,8 @@ class GenericAdvertParser(object):
     @staticmethod
     def parse_olx(document):
         title = document.xpath('//h1/text()')
-        params = filter(None, document.xpath('//table[contains(@class, "details")]//strong//text()'))
-        description = filter(None, document.xpath('//div[@id="textContent"]//text()'))
+        params = filter(None, document.xpath('//div[@data-testid="main"]//ul//li//p/text()'))
+        description = filter(None, document.xpath('//div[@data-cy="ad_description"]/div//text()'))
         return ' '.join(title + list(params) + list(description))
 
 
