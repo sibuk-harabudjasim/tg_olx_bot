@@ -36,7 +36,7 @@ if __name__ == '__main__':
         print('Error: {}'.format(str(e)))
         exit(-1)
     task_info = active_task_nt(1, 'testtask', Task.type, 1, args)
-    task = Task(task_info, {}, yield_data)
+    task = Task(task_info, yield_data)
     yield_data.add_observer('print', print_result)
 
     async def run_task():

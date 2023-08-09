@@ -11,6 +11,7 @@ from tasks.generic_advert import GenericAdvertParser
 
 from utils.validation import escape_re
 from utils.db import active_task_nt
+from utils.common import headers
 
 log = logging.getLogger()
 
@@ -52,7 +53,7 @@ class BaseParserTask(Task):
     async def run(self):
         url = self.task_data['url']
         log.debug(f"Fetching list from '{url}'...")
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get(url) as page:
                 document = html.fromstring(await page.read())
                 return self.parse_ads_list(document)

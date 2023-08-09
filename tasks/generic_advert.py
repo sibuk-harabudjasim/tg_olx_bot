@@ -7,7 +7,7 @@ import aiohttp
 from lxml import html
 
 
-from utils.common import detect_host
+from utils.common import detect_host, headers
 
 
 log = logging.getLogger()
@@ -22,7 +22,7 @@ class GenericAdvertParser(object):
         if not page_parser:
             log.warning(f"Unsupported URL ({host}): {url}")
             return
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get(url) as page:
                 document: html.Element = html.fromstring(await page.read())
         return self._prettify(page_parser(document))
@@ -58,6 +58,13 @@ class GenericAdvertParser(object):
         title = document.xpath('//h1/text()')
         params = filter(None, document.xpath('//div[@data-testid="main"]//ul//li//p/text()'))
         description = filter(None, document.xpath('//div[@data-cy="ad_description"]/div//text()'))
+        return ' '.join(title + list(params) + list(description))
+
+    @staticmethod
+    def parse_otodom(document: html.Element) -> str:
+        title = document.xpath('//h1[@data-cy="adPageAdTitle"]/text()')
+        params = filter(None, document.xpath('//div[@data-testid="ad.top-information.table"]//div/text()'))
+        description = filter(None, document.xpath('//div[@data-cy="adPageAdDescription"]//p//text()'))
         return ' '.join(title + list(params) + list(description))
 
 
