@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import asyncio
+import logging
 from collections import OrderedDict
 
-from utils import log
+
+log = logging.getLogger()
 
 
 class Signal(object):
@@ -30,12 +32,12 @@ class Signal(object):
                 else:
                     callable(*args, **kwargs)
             except Exception as e:
-                log.error("{} exception: {}", self, str(e))
+                log.error(f"{self} exception: {str(e)}")
                 if raise_exc:
                     raise
 
     def __repr__(self):
-        return '<Signal {}>'.format(self.name)
+        return f"<Signal {self.name}>"
 
 
 yield_data = Signal('yield_data')  # tg_id, text

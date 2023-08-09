@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 import re
+import logging
 from bot.conversation.constants import States, mainmenu, Constants
 from bot.userstor import with_user_data
 from core.signal import start_task
-from utils import log
 from utils.common import detect_host, is_allowed_host
 from utils.db import Tasks
 from utils.markups import parse_list
 from utils.validation import validate_url, validate_blacklist, validate_whitelist, validate_name
+
+
+log = logging.getLogger()
 
 
 @with_user_data
@@ -73,8 +76,9 @@ async def process_name(chat, message, user_data):
         name_text = 'Is "{}" okay? I just cannot use that name you typed. Sorry. Anyway, you won`t need to type it again.\n'.format(name)
     try:
         task = await Tasks.add_new_task(user_data['id'], name, **user_data['new_watch'])
+
     except Exception as e:
-        log.error('add_task() error: {}', str(e))
+        log.error(f"add_task() error: {str(e)}")
     del user_data['new_watch']
     del user_data['state']
     start_task.emit(user_data['tg_id'], task)

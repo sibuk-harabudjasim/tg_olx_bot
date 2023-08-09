@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+import logging
 from bot.conversation.constants import Buttons, Constants
 from bot.conversation.error import error_message
 from bot.userstor import with_user_data, callback_with_user_data
 from core.signal import stop_task, start_task
-from utils import log
 from utils.db import Tasks
 from utils.markups import make_inline_keyboard
+
+
+log = logging.getLogger()
 
 
 @with_user_data
@@ -24,8 +27,8 @@ async def task_info(chat, cq, match, user_data):
     await cq.answer()
     task_name = match.group(1)
     if task_name not in user_data['tasks']:
-        log.warning('Task name \'{}\' not in user tasks {}', task_name, user_data['tasks'].keys())
-        log.debug('User data: {}', user_data)
+        log.warning(f"Task name \'{task_name}\' not in user tasks {user_data['tasks'].keys()}")
+        log.debug(f"User data: {user_data}")
         return await error_message(chat, None, user_data)
     task = user_data['tasks'][task_name]
     info = '''
