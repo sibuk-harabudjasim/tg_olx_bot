@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 import typing
+import types
 import os
 from dotenv import load_dotenv
 
-from utils.common import is_optional
+
+def is_optional(type_: typing.Type) -> bool:
+    return typing.get_origin(type_) in [typing.Union, types.UnionType] and typing.get_args(type_)[1] is types.NoneType
+
 
 class ConfigContainer(object):
     DEBUG: bool | None = False

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import re
-import typing
-import types
 
 from utils import log
 
@@ -37,10 +35,6 @@ async def catch(coro):
             await coro
     except Exception as e:
         log.error('catch(): {}', str(e))
-
-
-def is_optional(type_: typing.Type) -> bool:
-    return typing.get_origin(type_) in [typing.Union, types.UnionType] and typing.get_args(type_)[1] is types.NoneType
 
 
 
