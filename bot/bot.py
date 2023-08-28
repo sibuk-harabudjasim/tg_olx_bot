@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from aiotg import Bot
 import logging
+import traceback
 
 from bot.userstor import with_user_data
 from core.config import config
@@ -58,11 +59,19 @@ class ParseBot(object):
         return def_handler
 
     def run(self, webhook=config.WEBHOOK_URL):
-        if webhook:
-            self.bot.run_webhook(webhook)
-        else:
-            self.bot.run(config.DEBUG)
-
+        while True:
+            try:
+                if webhook:
+                    self.bot.run_webhook(webhook)
+                else:
+                    self.bot.run(config.DEBUG)
+            except Exception as e:
+                log.error(traceback.format_exc())
+                log.info("Restarting bot")
+                continue
+            else:
+                log.info("bot.run() exited, probably keyboard interrupt, exiting")
+                return
 
 parsebot = ParseBot()
 
